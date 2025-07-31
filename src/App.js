@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
+import PostForm from './components/PostForm';
 
 function App() {
+  const [posts, setPosts] = useState([]);
+
   return (
     <div className="app">
       <header>
@@ -13,7 +16,7 @@ function App() {
         </div>
       </header>
       <main>
-        {/* Post form will go here */}
+        <PostForm posts={posts} setPosts={setPosts} />
       </main>
     </div>
   );

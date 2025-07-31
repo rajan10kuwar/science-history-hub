@@ -8,6 +8,10 @@ const PostForm = ({ posts, setPosts }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!title.trim()) {
+      alert('Title is required!');
+      return;
+    }
     const newPost = { 
       id: Date.now(), 
       title, 
@@ -33,6 +37,7 @@ const PostForm = ({ posts, setPosts }) => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
+            placeholder="Enter post title"
           />
         </div>
         <div>
@@ -40,6 +45,7 @@ const PostForm = ({ posts, setPosts }) => {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
+            placeholder="Add optional content"
           />
         </div>
         <div>
@@ -48,9 +54,11 @@ const PostForm = ({ posts, setPosts }) => {
             type="url"
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="Enter image URL"
           />
         </div>
         <button type="submit">Create Post</button>
+        {posts.length > 0 && <p>Posts created: {posts.length}</p>}
       </form>
     </div>
   );
