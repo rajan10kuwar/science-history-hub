@@ -13,6 +13,20 @@
   margin-bottom: 10px;
 }
 
+.feed-controls {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.sort-select,
+.search-input {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
 .post-item {
   padding: 10px;
   border-bottom: 1px solid #eee;
