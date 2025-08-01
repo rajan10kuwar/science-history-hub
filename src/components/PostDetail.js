@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-const PostDetail = ({ posts, setPosts }) => {
+const PostDetail = ({ posts, setPosts, currentSecretKey }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const post = posts.find(p => p.id === parseInt(id));
@@ -11,6 +11,9 @@ const PostDetail = ({ posts, setPosts }) => {
   const [editedTitle, setEditedTitle] = useState(post?.title || '');
   const [editedContent, setEditedContent] = useState(post?.content || '');
   const [editedImageUrl, setEditedImageUrl] = useState(post?.imageUrl || '');
+  const [authKey, setAuthKey] = useState('');
+  const [isDeletingPost, setIsDeletingPost] = useState(false);
+  const [isDeletingComment, setIsDeletingComment] = useState(null); // Track which comment to delete
 
   useEffect(() => {
     if (post) {
@@ -48,22 +51,62 @@ const PostDetail = ({ posts, setPosts }) => {
   const handleSaveEdit = (e) => {
     e.preventDefault();
     if (editedTitle.trim()) {
+      if (!authKey || (post.secretKey && post.secretKey !== authKey)) {
+        alert('Unauthorized! Please enter the correct secret key.');
+        return;
+      }
       const updatedPosts = posts.map(p =>
         p.id === post.id ? { ...p, title: editedTitle, content: editedContent, imageUrl: editedImageUrl } : p
       );
       setPosts(updatedPosts);
       setIsEditing(false);
+      setAuthKey('');
     } else {
       alert('Title is required!');
     }
   };
 
-  const handleDelete = () => {
+  const handleDeletePost = () => {
+    setIsDeletingPost(true);
+  };
+
+  const handleConfirmDeletePost = (e) => {
+    e.preventDefault();
+    if (post.secretKey !== authKey) {
+      alert('Unauthorized! Please enter the correct secret key.');
+      setIsDeletingPost(false);
+      setAuthKey('');
+      return;
+    }
     if (window.confirm('Are you sure you want to delete this post?')) {
       const updatedPosts = posts.filter(p => p.id !== post.id);
       setPosts(updatedPosts);
       navigate('/');
     }
+    setIsDeletingPost(false);
+    setAuthKey('');
+  };
+
+  const handleDeleteComment = (commentId) => {
+    setIsDeletingComment(commentId);
+  };
+
+  const handleConfirmDeleteComment = (e) => {
+    e.preventDefault();
+    if (post.secretKey !== authKey) {
+      alert('Unauthorized! Please enter the correct secret key.');
+      setIsDeletingComment(null);
+      setAuthKey('');
+      return;
+    }
+    const updatedComments = comments.filter(c => c.id !== isDeletingComment);
+    const updatedPosts = posts.map(p =>
+      p.id === post.id ? { ...p, comments: updatedComments } : p
+    );
+    setPosts(updatedPosts);
+    setComments(updatedComments);
+    setIsDeletingComment(null);
+    setAuthKey('');
   };
 
   if (!post) return <div style={{ padding: '20px' }}>Post not found.</div>;
@@ -72,6 +115,16 @@ const PostDetail = ({ posts, setPosts }) => {
     <div style={{ padding: '20px', maxWidth: '600px', margin: '20px auto', backgroundColor: 'white', borderRadius: '5px' }}>
       {isEditing ? (
         <form onSubmit={handleSaveEdit}>
+          <div>
+            <label>Secret Key</label>
+            <input
+              type="password"
+              value={authKey}
+              onChange={(e) => setAuthKey(e.target.value)}
+              placeholder="Enter secret key to edit"
+              required
+            />
+          </div>
           <div>
             <label>Title</label>
             <input
@@ -107,6 +160,52 @@ const PostDetail = ({ posts, setPosts }) => {
             Cancel
           </button>
         </form>
+      ) : isDeletingPost ? (
+        <form onSubmit={handleConfirmDeletePost}>
+          <div>
+            <label>Secret Key</label>
+            <input
+              type="password"
+              value={authKey}
+              onChange={(e) => setAuthKey(e.target.value)}
+              placeholder="Enter secret key to delete"
+              required
+            />
+          </div>
+          <button type="submit" style={{ padding: '5px 10px', backgroundColor: '#ff4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            Confirm Delete
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsDeletingPost(false)}
+            style={{ padding: '5px 10px', backgroundColor: '#ccc', color: 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', marginLeft: '10px' }}
+          >
+            Cancel
+          </button>
+        </form>
+      ) : isDeletingComment !== null ? (
+        <form onSubmit={handleConfirmDeleteComment}>
+          <div>
+            <label>Secret Key</label>
+            <input
+              type="password"
+              value={authKey}
+              onChange={(e) => setAuthKey(e.target.value)}
+              placeholder="Enter secret key to delete comment"
+              required
+            />
+          </div>
+          <button type="submit" style={{ padding: '5px 10px', backgroundColor: '#ff4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            Confirm Delete Comment
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsDeletingComment(null)}
+            style={{ padding: '5px 10px', backgroundColor: '#ccc', color: 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', marginLeft: '10px' }}
+          >
+            Cancel
+          </button>
+        </form>
       ) : (
         <>
           <h2>{post.title}</h2>
@@ -127,7 +226,7 @@ const PostDetail = ({ posts, setPosts }) => {
             Edit
           </button>
           <button
-            onClick={handleDelete}
+            onClick={handleDeletePost}
             style={{ padding: '5px 10px', backgroundColor: '#ff4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
           >
             Delete
@@ -140,9 +239,15 @@ const PostDetail = ({ posts, setPosts }) => {
           <p>No comments yet. Be the first!</p>
         ) : (
           comments.map(comment => (
-            <div key={comment.id} style={{ marginBottom: '10px' }}>
+            <div key={comment.id} style={{ marginBottom: '10px', border: '1px solid #ccc', padding: '5px' }}>
               <p>{comment.text}</p>
               <small>Posted: {new Date(comment.createdAt).toLocaleString()}</small>
+              <button
+                onClick={() => handleDeleteComment(comment.id)}
+                style={{ padding: '3px 6px', backgroundColor: '#ff4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '5px' }}
+              >
+                Delete Comment
+              </button>
             </div>
           ))
         )}

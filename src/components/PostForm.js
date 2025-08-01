@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import './styles/PostForm.css';
 
-const PostForm = ({ posts, setPosts }) => {
+const PostForm = ({ posts, setPosts, currentSecretKey, setCurrentSecretKey }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [secretKey, setSecretKey] = useState(''); // Initialize as empty string, independent of currentSecretKey
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -12,18 +13,26 @@ const PostForm = ({ posts, setPosts }) => {
       alert('Title is required!');
       return;
     }
-    const newPost = { 
-      id: Date.now(), 
-      title, 
-      content, 
-      imageUrl, 
-      upvotes: 0, 
-      createdAt: new Date().toISOString() 
+    if (!secretKey.trim()) {
+      alert('Secret key is required!');
+      return;
+    }
+    const newPost = {
+      id: Date.now(),
+      title,
+      content,
+      imageUrl,
+      upvotes: 0,
+      comments: [],
+      secretKey: secretKey, // Mandatory secret key
+      createdAt: new Date().toISOString(),
     };
     setPosts([...posts, newPost]);
+    setCurrentSecretKey(secretKey); // Update the session's secret key
     setTitle('');
     setContent('');
     setImageUrl('');
+    setSecretKey(''); // Explicitly clear secretKey
   };
 
   return (
@@ -55,6 +64,16 @@ const PostForm = ({ posts, setPosts }) => {
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
             placeholder="Enter image URL"
+          />
+        </div>
+        <div>
+          <label>Secret Key (Required)</label>
+          <input
+            type="password"
+            value={secretKey}
+            onChange={(e) => setSecretKey(e.target.value)}
+            required
+            placeholder="Set a secret key (required for editing/deleting)"
           />
         </div>
         <button type="submit">Create Post</button>
