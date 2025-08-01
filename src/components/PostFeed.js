@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './styles/PostFeed.css';
 
-const PostFeed = ({ posts }) => {
+const PostFeed = ({ posts, isLoading }) => {
   const [sortBy, setSortBy] = useState('creation');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -21,7 +21,7 @@ const PostFeed = ({ posts }) => {
 
   return (
     <div className="post-feed">
-      <h2>Science History Feed</h2>
+      <h2>ScienceHistory Feed</h2>
       <div className="feed-controls">
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="sort-select">
           <option value="creation">Sort by Creation Time</option>
