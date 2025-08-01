@@ -27,7 +27,7 @@ function App() {
                 <PostFeed posts={posts} />
               </>
             } />
-            <Route path="/post/:id" element={<PostDetail />} />
+            <Route path="/post/:id" element={<PostDetail posts={posts} setPosts={setPosts} />} />
             <Route path="/create" element={<PostForm posts={posts} setPosts={setPosts} />} />
           </Routes>
         </main>

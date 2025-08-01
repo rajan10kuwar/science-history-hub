@@ -58,7 +58,6 @@ const PostForm = ({ posts, setPosts }) => {
           />
         </div>
         <button type="submit">Create Post</button>
-        {posts.length > 0 && <p>Posts created: {posts.length}</p>}
       </form>
     </div>
   );
